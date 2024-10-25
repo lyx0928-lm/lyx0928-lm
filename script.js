@@ -178,7 +178,6 @@ document.addEventListener("DOMContentLoaded", function() {
     { part: 'ba6330af17547524f5964', description: 'The Gentlemen' },
     { part: 'bb8d65afbd5095c77195b', description: 'Identity' },
     { part: 'bc64f31224fd786769b40', description: 'Rear Window' },
-    { part: 'c1c8a6b1ea50a7ef73358', description: 'The Shawshank Redemption' },
     { part: 'c28783efb5af8b9b3959a', description: 'The Man from U.N.C.L.E.' },
     { part: 'c53b6125cfa3d573667ce', description: 'Roman Holiday' },
     { part: 'c57ca88023ab9814d923a', description: 'IL gattopardo' },
