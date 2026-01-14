@@ -72,17 +72,19 @@ function buildPeopleInputs(count) {
   }
 }
 
+// 初始生成
 buildPeopleInputs(Number(countSel.value));
 
+// ✅ 切换人数：不要 form.reset()，否则 select 会回默认值（5）
 countSel.addEventListener("change", () => {
-  form.reset();
   setMsg("");
   buildPeopleInputs(Number(countSel.value));
 });
 
+// ✅ 清空：不要 form.reset()，否则 select 会回默认值（5）
 resetBtn.addEventListener("click", () => {
-  form.reset();
   setMsg("");
+  evaluatorEl.value = "";
   buildPeopleInputs(Number(countSel.value));
 });
 
@@ -114,11 +116,13 @@ form.addEventListener("submit", async (e) => {
     people.push({ name, prep, teach, obs, total: total1(prep, teach, obs) });
   }
 
+  // 总分必须唯一（按1位小数）
   const uniq = new Set(people.map(p => p.total.toFixed(1)));
   if (uniq.size !== people.length) {
     return setMsg("❌ 无法提交：存在相同总分，请调整，让每人总分都不同。");
   }
 
+  // 排序：总分高在前
   people.sort((a, b) => b.total - a.total);
 
   const sb = getClientOrNull();
@@ -133,7 +137,8 @@ form.addEventListener("submit", async (e) => {
 
   if (error) return setMsg(`❌ 提交失败：${error.message}`);
 
-  form.reset();
+  // ✅ 提交成功后：不要 form.reset()，否则人数会回默认值（5）
+  evaluatorEl.value = "";
   buildPeopleInputs(Number(countSel.value));
   setMsg("✅ 提交成功！（参与者无法查看统计结果）", true);
 });
