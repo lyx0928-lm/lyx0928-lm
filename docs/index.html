@@ -3,28 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>在线评分（参与者）</title>
+  <title>在线评分</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <h1>在线评分（参与者）</h1>
+  <h1>在线评分</h1>
 
-  <div class="card">
-    <h2>第一步：输入你的名字</h2>
-    <div class="row">
-      <label for="myName">你的名字</label>
-      <input id="myName" type="text" placeholder="例如：张三" />
-    </div>
-    <button id="setNameBtn">确认名字</button>
-    <div class="hint" id="nameMsg"></div>
-  </div>
-
-  <div class="card" id="formCard" style="display:none;">
-    <h2>第二步：给 2-5 人评分</h2>
+  <form id="scoreForm" class="card" novalidate>
     <div class="small">
       评分项：备课(0-2)、上课(0-6)、听课(0-2)，均允许一位小数。<br/>
-      提交要求：本次被评分的每个人 <b>总分必须都不一样</b>（相当于排序），否则无法提交。<br/>
-      注意：参与者提交后 <b>看不到统计结果</b>。
+      提交要求：本次 2-5 人，且每个人 <b>总分必须都不一样</b>（用于排序），否则无法提交。<br/>
+      提交后参与者 <b>看不到统计结果</b>。
+    </div>
+
+    <div class="row">
+      <label for="evaluator">你的名字</label>
+      <input id="evaluator" type="text" placeholder="例如：张三" required />
     </div>
 
     <div class="row">
@@ -37,19 +31,16 @@
       </select>
     </div>
 
-    <form id="scoreForm" novalidate>
-      <div id="peopleWrap" class="peopleWrap"></div>
+    <div id="peopleWrap" class="peopleWrap"></div>
 
-      <div class="actions">
-        <button type="submit">提交</button>
-        <button type="button" id="resetBtn">清空</button>
-      </div>
+    <div class="actions">
+      <button type="submit">提交</button>
+      <button type="button" id="resetBtn">清空</button>
+    </div>
 
-      <div class="hint" id="msg"></div>
-    </form>
-  </div>
+    <div class="hint" id="msg" aria-live="polite"></div>
+  </form>
 
-  <!-- Supabase JS（CDN） -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./app.js"></script>
 </body>
