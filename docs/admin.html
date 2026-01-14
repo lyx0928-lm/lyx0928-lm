@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>统计员后台</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <h1>统计员后台（仅统计员可见）</h1>
+
+  <div class="card" id="loginCard">
+    <h2>登录</h2>
+    <div class="row">
+      <label for="email">邮箱</label>
+      <input id="email" type="email" placeholder="统计员邮箱" />
+    </div>
+    <div class="row">
+      <label for="pw">密码</label>
+      <input id="pw" type="password" placeholder="统计员密码" />
+    </div>
+    <button id="loginBtn">登录</button>
+    <div class="hint" id="loginMsg"></div>
+  </div>
+
+  <div class="card" id="dataCard" style="display:none;">
+    <div class="actions">
+      <button id="refreshBtn">刷新</button>
+      <button id="exportBtn">导出CSV</button>
+      <button id="logoutBtn">退出</button>
+    </div>
+    <div class="small" id="meta"></div>
+    <div id="list"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>
