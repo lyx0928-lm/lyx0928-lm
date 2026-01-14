@@ -1,26 +1,11 @@
-// ====== 1) 填你的 Supabase 信息 ======
 const SUPABASE_URL = "https://vyyisfbyuvmroqzbkcme.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_sU6Sj59xu7V_YhaBb3Cnhg_JU-JzFu-";
-
-// 创建客户端（匿名）
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const RANGES = {
   prep:  { label: "备课", min: 0, max: 2 },
   teach: { label: "上课", min: 0, max: 6 },
   obs:   { label: "听课", min: 0, max: 2 },
 };
-
-const myName = document.getElementById("myName");
-const setNameBtn = document.getElementById("setNameBtn");
-const nameMsg = document.getElementById("nameMsg");
-const formCard = document.getElementById("formCard");
-
-const countSel = document.getElementById("count");
-const peopleWrap = document.getElementById("peopleWrap");
-const scoreForm = document.getElementById("scoreForm");
-const msg = document.getElementById("msg");
-const resetBtn = document.getElementById("resetBtn");
 
 function setHint(el, text, ok=false) {
   el.textContent = text || "";
@@ -37,8 +22,29 @@ function total1(prep, teach, obs) {
   return Math.round((prep + teach + obs) * 10) / 10;
 }
 
-function buildPeopleInputs(count) {
+function supabaseConfigured() {
+  return (
+    SUPABASE_URL &&
+    SUPABASE_ANON_KEY &&
+    !SUPABASE_URL.includes("YOUR_SUPABASE_URL") &&
+    !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_PUBLIC_KEY")
+  );
+}
+
+function getClientOrNull() {
+  if (!window.supabase) return null;           // CDN 没加载
+  if (!supabaseConfigured()) return null;      // 没替换配置
+  try {
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function buildPeopleInputs(peopleWrap, countSel) {
   peopleWrap.innerHTML = "";
+  const count = Number(countSel.value);
+
   for (let i = 1; i <= count; i++) {
     const div = document.createElement("div");
     div.className = "person";
@@ -62,83 +68,101 @@ function buildPeopleInputs(count) {
   }
 }
 
-// 恢复评分人名字
-const savedName = localStorage.getItem("evaluatorName");
-if (savedName) {
-  myName.value = savedName;
-  formCard.style.display = "";
-  setHint(nameMsg, "✅ 已恢复你的名字，可以开始评分。", true);
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const myName = document.getElementById("myName");
+  const setNameBtn = document.getElementById("setNameBtn");
+  const nameMsg = document.getElementById("nameMsg");
+  const formCard = document.getElementById("formCard");
 
-buildPeopleInputs(Number(countSel.value));
+  const countSel = document.getElementById("count");
+  const peopleWrap = document.getElementById("peopleWrap");
+  const scoreForm = document.getElementById("scoreForm");
+  const msg = document.getElementById("msg");
+  const resetBtn = document.getElementById("resetBtn");
 
-countSel.addEventListener("change", () => {
-  scoreForm.reset();
-  setHint(msg, "");
-  buildPeopleInputs(Number(countSel.value));
-});
-
-resetBtn.addEventListener("click", () => {
-  scoreForm.reset();
-  setHint(msg, "");
-});
-
-setNameBtn.addEventListener("click", () => {
-  setHint(nameMsg, "");
-  const name = myName.value.trim();
-  if (!name) return setHint(nameMsg, "❌ 请输入你的名字。");
-  if (name.length > 40) return setHint(nameMsg, "❌ 名字太长（最多40字）。");
-  localStorage.setItem("evaluatorName", name);
-  formCard.style.display = "";
-  setHint(nameMsg, "✅ 名字已确认，可以开始评分。", true);
-});
-
-scoreForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  setHint(msg, "");
-
-  const evaluatorName = (localStorage.getItem("evaluatorName") || "").trim();
-  if (!evaluatorName) return setHint(msg, "❌ 请先输入并确认你的名字。");
-
-  const count = Number(countSel.value);
-  const people = [];
-
-  for (let i = 1; i <= count; i++) {
-    const name = document.getElementById(`pname${i}`).value.trim();
-    const prep  = Number(document.getElementById(`prep${i}`).value);
-    const teach = Number(document.getElementById(`teach${i}`).value);
-    const obs   = Number(document.getElementById(`obs${i}`).value);
-
-    if (!name) return setHint(msg, `❌ 第 ${i} 人：姓名不能为空。`);
-    if (name.length > 40) return setHint(msg, `❌ 第 ${i} 人：姓名太长（最多40字）。`);
-    if (![prep, teach, obs].every(isOneDecimalNumber)) return setHint(msg, `❌ 第 ${i} 人：分数最多一位小数。`);
-
-    if (!inRange(prep, RANGES.prep.min, RANGES.prep.max)) return setHint(msg, `❌ 第 ${i} 人：备课范围 0-2。`);
-    if (!inRange(teach, RANGES.teach.min, RANGES.teach.max)) return setHint(msg, `❌ 第 ${i} 人：上课范围 0-6。`);
-    if (!inRange(obs, RANGES.obs.min, RANGES.obs.max)) return setHint(msg, `❌ 第 ${i} 人：听课范围 0-2。`);
-
-    people.push({ name, prep, teach, obs, total: total1(prep, teach, obs) });
+  // 恢复评分人名字
+  const savedName = localStorage.getItem("evaluatorName");
+  if (savedName) {
+    myName.value = savedName;
+    formCard.style.display = "";
+    setHint(nameMsg, "✅ 已恢复你的名字，可以开始评分。", true);
   }
 
-  // 总分必须唯一（按1位小数）
-  const uniq = new Set(people.map(p => p.total.toFixed(1)));
-  if (uniq.size !== people.length) {
-    return setHint(msg, "❌ 无法提交：存在相同总分，请调整，让每人总分都不同。");
-  }
+  buildPeopleInputs(peopleWrap, countSel);
 
-  // 排名：总分高在前
-  people.sort((a, b) => b.total - a.total);
-
-  // 写入 Supabase
-  const { error } = await supabase.from("submissions").insert({
-    evaluator_name: evaluatorName,
-    ranked_people: people
+  countSel.addEventListener("change", () => {
+    scoreForm.reset();
+    setHint(msg, "");
+    buildPeopleInputs(peopleWrap, countSel);
   });
 
-  if (error) {
-    return setHint(msg, `❌ 提交失败：${error.message}`);
-  }
+  resetBtn.addEventListener("click", () => {
+    scoreForm.reset();
+    setHint(msg, "");
+  });
 
-  scoreForm.reset();
-  setHint(msg, "✅ 提交成功！（参与者无法查看统计结果）", true);
+  // ✅ 确认名字：一定会有反应
+  setNameBtn.addEventListener("click", () => {
+    setHint(nameMsg, "");
+    const name = myName.value.trim();
+    if (!name) return setHint(nameMsg, "❌ 请输入你的名字。");
+    if (name.length > 40) return setHint(nameMsg, "❌ 名字太长（最多40字）。");
+
+    localStorage.setItem("evaluatorName", name);
+    formCard.style.display = "";
+    setHint(nameMsg, "✅ 名字已确认，可以开始评分。", true);
+  });
+
+  scoreForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setHint(msg, "");
+
+    const evaluatorName = (localStorage.getItem("evaluatorName") || "").trim();
+    if (!evaluatorName) return setHint(msg, "❌ 请先输入并确认你的名字。");
+
+    const count = Number(countSel.value);
+    const people = [];
+
+    for (let i = 1; i <= count; i++) {
+      const name = document.getElementById(`pname${i}`).value.trim();
+      const prep  = Number(document.getElementById(`prep${i}`).value);
+      const teach = Number(document.getElementById(`teach${i}`).value);
+      const obs   = Number(document.getElementById(`obs${i}`).value);
+
+      if (!name) return setHint(msg, `❌ 第 ${i} 人：姓名不能为空。`);
+      if (name.length > 40) return setHint(msg, `❌ 第 ${i} 人：姓名太长（最多40字）。`);
+      if (![prep, teach, obs].every(isOneDecimalNumber)) return setHint(msg, `❌ 第 ${i} 人：分数最多一位小数。`);
+
+      if (!inRange(prep, RANGES.prep.min, RANGES.prep.max)) return setHint(msg, `❌ 第 ${i} 人：备课范围 0-2。`);
+      if (!inRange(teach, RANGES.teach.min, RANGES.teach.max)) return setHint(msg, `❌ 第 ${i} 人：上课范围 0-6。`);
+      if (!inRange(obs, RANGES.obs.min, RANGES.obs.max)) return setHint(msg, `❌ 第 ${i} 人：听课范围 0-2。`);
+
+      people.push({ name, prep, teach, obs, total: total1(prep, teach, obs) });
+    }
+
+    const uniq = new Set(people.map(p => p.total.toFixed(1)));
+    if (uniq.size !== people.length) {
+      return setHint(msg, "❌ 无法提交：存在相同总分，请调整，让每人总分都不同。");
+    }
+
+    people.sort((a, b) => b.total - a.total);
+
+    const sb = getClientOrNull();
+    if (!sb) {
+      return setHint(
+        msg,
+        "❌ 无法提交：Supabase 未配置或加载失败。请确认已替换 SUPABASE_URL / SUPABASE_ANON_KEY，且 supabase-js CDN 能访问。"
+      );
+    }
+
+    const { error } = await sb.from("submissions").insert({
+      evaluator_name: evaluatorName,
+      ranked_people: people
+    });
+
+    if (error) return setHint(msg, `❌ 提交失败：${error.message}`);
+
+    scoreForm.reset();
+    setHint(msg, "✅ 提交成功！（参与者无法查看统计结果）", true);
+  });
 });
