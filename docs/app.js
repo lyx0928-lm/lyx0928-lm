@@ -1,6 +1,6 @@
 // ====== 1) 填你的 Supabase 信息 ======
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_PUBLIC_KEY";
+const SUPABASE_URL = "https://vyyisfbyuvmroqzbkcme.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_sU6Sj59xu7V_YhaBb3Cnhg_JU-JzFu-";
 
 // 创建客户端（匿名）
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
